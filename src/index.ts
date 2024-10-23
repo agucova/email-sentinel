@@ -1,6 +1,6 @@
 import { EmailMessage } from 'cloudflare:email';
 import { createMimeMessage } from 'mimetext';
-import { ParsedMessage, parseMail } from '@protontech/jsmimeparser';
+import { parseMail } from '@protontech/jsmimeparser';
 import { craftForwardedEmail } from './forward';
 
 // Configuration

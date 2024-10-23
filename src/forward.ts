@@ -1,10 +1,6 @@
-import { EmailMessage } from 'cloudflare:email';
-import { createMimeMessage, MailboxAddrObject, MailboxType, MIMEMessage } from 'mimetext';
-import { AddressOrGroup, ParsedMessage, parseMail } from '@protontech/jsmimeparser';
+import { createMimeMessage, MIMEMessage } from 'mimetext';
+import { ParsedMessage } from '@protontech/jsmimeparser';
 import { head, mapValues, pick } from 'es-toolkit';
-
-import { processHeaders } from './mimeDecode';
-import { match, P } from 'ts-pattern';
 
 export function craftForwardedEmail(
 	originalEmail: ParsedMessage,
