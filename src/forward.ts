@@ -16,42 +16,7 @@ export function craftForwardedEmail(
 		addr: sentinelEmail, // TODO: Figure out how to preserve the sender
 	});
 
-	// Flatten groups if present, as it can be either an Address or Group
-	// Groups have a name and a 'group' field, which is an array of addresses
-	// const toMimeAddresses = (addrOrGroups: AddressOrGroup[]) =>
-	// 	addrOrGroups
-	// 		.flatMap((recipient) =>
-	// 			match(recipient)
-	// 				.with({ group: P._ }, (group) => group.group)
-	// 				.with({ email: P.string }, (email) => [email])
-	// 				.exhaustive()
-	// 		)
-	// 		.map((recipient) => ({
-	// 			name: recipient.name,
-	// 			addr: recipient.email,
-	// 		}));
-
-	// const toRecipients = toMimeAddresses(originalEmail.to ?? []);
-	// const ccRecipients = toMimeAddresses(originalEmail.cc ?? []);
-	// const bccRecipients = toMimeAddresses(originalEmail.bcc ?? []);
-
-	// const recipients: MailboxAddrObject[] = [
-	// 	...toRecipients.map((recipient) => ({
-	// 		addr: recipient.addr,
-	// 		name: recipient.name,
-	// 		type: 'To' as MailboxType,
-	// 	})),
-	// 	...ccRecipients.map((recipient) => ({
-	// 		addr: recipient.addr,
-	// 		name: recipient.name,
-	// 		type: 'Cc' as MailboxType,
-	// 	})),
-	// 	...bccRecipients.map((recipient) => ({
-	// 		addr: recipient.addr,
-	// 		name: recipient.name,
-	// 		type: 'Bcc' as MailboxType,
-	// 	})),
-	// ];
+	// Ideally I would just preserve the recipients, but Cloudflare doesn't seem to permit having a `To` header that's different from the SMTP envelope recipient.
 
 	msg.setRecipient({
 		addr: targetEmail,
