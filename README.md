@@ -4,6 +4,8 @@ This is a completely unserious prototype implementing [this tweet](https://x.com
 
 ![Don't ask me why](<img/tweet.png>)
 
+This repo uses [Cloudflare Email Workers](https://developers.cloudflare.com/email-routing/email-workers/) to implement a simple greylisting system for your email.
+
 ## What it does
 
 1. New person emails you
@@ -16,11 +18,11 @@ This is a completely unserious prototype implementing [this tweet](https://x.com
 ## How it looks
 <img src="img/verification_email.png" width="700">
 
-## Is it good?
+## Is it any good?
 
-No, and it's littered with bugs.
+No. Please don't use this.
 
-Also it's beyond me why Email Workers don't support SRS forwarding for some reason.
+Also it's beyond me why Email Workers don't support SRS forwarding.
 
 ## Setup
 
