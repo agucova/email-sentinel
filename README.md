@@ -22,7 +22,7 @@ This repo uses [Cloudflare Email Workers](https://developers.cloudflare.com/emai
 
 No. Please don't use this.
 
-Also it's beyond me why Email Workers don't support SRS forwarding.
+Also it's beyond me why Email Workers doesn't support forwarding emails with an [SRS sender](https://en.wikipedia.org/wiki/Sender_Rewriting_Scheme).
 
 ## Setup
 
