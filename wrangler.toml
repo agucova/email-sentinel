@@ -4,6 +4,10 @@ main = "src/index.ts"
 compatibility_date = "2024-10-22"
 compatibility_flags = ["nodejs_compat"]
 
+send_email = [
+	{ name = "SENTINEL_MAILER", destination_address = "sentinel@agucova.dev" }
+]
+
 # Workers Logs
 # Docs: https://developers.cloudflare.com/workers/observability/logs/workers-logs/
 # Configuration: https://developers.cloudflare.com/workers/observability/logs/workers-logs/#enable-workers-logs
