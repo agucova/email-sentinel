@@ -5,7 +5,12 @@ compatibility_date = "2024-10-22"
 compatibility_flags = ["nodejs_compat"]
 
 send_email = [
-	{ name = "SENTINEL_MAILER", destination_address = "sentinel@agucova.dev" }
+	{ name = "MAILER", destination_address = "sentinel@agucova.dev" },
+]
+
+kv_namespaces = [
+	{ binding = "CHALLENGE_STORE", id = "8cd5940f7b2a429b94d65ac1388c308d" },
+	{ binding = "WHITELIST_STORE", id = "db993513ebc0456a81e7626541c01d6a" }
 ]
 
 # Workers Logs
@@ -13,6 +18,7 @@ send_email = [
 # Configuration: https://developers.cloudflare.com/workers/observability/logs/workers-logs/#enable-workers-logs
 [observability]
 enabled = true
+head_sampling_rate = 1
 
 # Automatically place your workloads in an optimal location to minimize latency.
 # If you are running back-end logic in a Worker, running it closer to your back-end infrastructure

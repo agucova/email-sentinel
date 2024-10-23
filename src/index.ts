@@ -3,6 +3,7 @@ import { createMimeMessage } from "mimetext";
 
 // Configuration
 const TARGET_EMAIL = "sentinel@agucova.dev";
+const WORKER_ROUTE = "email-sentinel.agucova.workers.dev";
 
 interface ChallengeState {
   challengeToken: string;
@@ -11,14 +12,14 @@ interface ChallengeState {
     to: string;
     rawEmail: Uint8Array;
     timestamp: number;
-	headers: Headers;
+    headers: Headers;
   };
 }
 
 export interface Env {
   CHALLENGE_STORE: KVNamespace;
   WHITELIST_STORE: KVNamespace;
-  MAILER: SendEmail; // Email binding for sending messages
+  MAILER: SendEmail;
 }
 
 function generateChallenge(): { question: string; answer: string } {
@@ -42,6 +43,14 @@ function generateChallenge(): { question: string; answer: string } {
     default: answer = num1 + num2;
   }
 
+  console.log({
+    event: "challenge_generated",
+    operation: operation.name,
+    num1,
+    num2,
+    answer
+  });
+
   return {
     question: `What is ${num1} ${operation.op} ${num2}?`,
     answer: answer.toString(),
@@ -59,7 +68,15 @@ async function sendChallengeEmail(
   env: Env
 ): Promise<void> {
   const senderName = message.from.split('@')[0];
-  const verificationLink = `https://email-sentinel.agucova.workers.dev/verify?token=${token}&answer=`;
+  const verificationLink = `https://${WORKER_ROUTE}/verify?token=${token}&answer=`;
+
+  console.log({
+    event: "challenge_email_sent",
+    sender: message.from,
+    token,
+    question: challenge.question,
+    messageId: message.headers.get("Message-ID")
+  });
 
   const msg = createMimeMessage();
   msg.setHeader("In-Reply-To", message.headers.get("Message-ID") || '');
@@ -155,6 +172,12 @@ async function sendVerificationSuccessEmail(
 ): Promise<void> {
   const senderName = originalEmail.from.split('@')[0];
 
+  console.log({
+    event: "success_email_sent",
+    sender: originalEmail.from,
+    messageId: originalEmail.headers.get("Message-ID")
+  });
+
   const msg = createMimeMessage();
   msg.setSender({ name: "Email Protection System", addr: TARGET_EMAIL });
   msg.setRecipient(originalEmail.from);
@@ -214,15 +237,25 @@ Thank you for your patience with this security measure.
 
 export default {
   async email(message: ForwardableEmailMessage, env: Env, ctx: ExecutionContext) {
+    console.log({
+      event: "email_received",
+      sender: message.from,
+      recipient: message.to,
+      subject: message.headers.get("Subject"),
+      messageId: message.headers.get("Message-ID")
+    });
+
     // Check if sender is whitelisted
     const isWhitelisted = await env.WHITELIST_STORE.get(message.from);
     if (isWhitelisted) {
+      console.log({
+        event: "whitelisted_email_forwarded",
+        sender: message.from,
+        messageId: message.headers.get("Message-ID")
+      });
       await message.forward(TARGET_EMAIL);
       return;
     }
-
-    // Store raw email data
-    const rawEmailData = await new Response(message.raw).arrayBuffer();
 
     // Generate challenge
     const challenge = generateChallenge();
@@ -234,11 +267,19 @@ export default {
       originalEmail: {
         from: message.from,
         to: message.to,
-        rawEmail: new Uint8Array(rawEmailData),
+        rawEmail: new Uint8Array(await new Response(message.raw).arrayBuffer()),
         timestamp: Date.now(),
-		headers: message.headers,
+        headers: message.headers,
       },
     };
+
+    console.log({
+      event: "challenge_stored",
+      sender: message.from,
+      token,
+      timestamp: challengeState.originalEmail.timestamp,
+      messageId: message.headers.get("Message-ID")
+    });
 
     // Store in KV with 24-hour expiration
     await env.CHALLENGE_STORE.put(
@@ -257,13 +298,31 @@ export default {
       const token = url.searchParams.get("token");
       const answer = url.searchParams.get("answer");
 
+      console.log({
+        event: "verification_attempt",
+        token,
+        answer,
+        ip: request.headers.get("CF-Connecting-IP")
+      });
+
       if (!token || !answer) {
+        console.log({
+          event: "verification_error",
+          error: "invalid_parameters",
+          token,
+          answer
+        });
         return new Response("Invalid verification link", { status: 400 });
       }
 
       // Retrieve challenge state
       const challengeStateStr = await env.CHALLENGE_STORE.get(`challenge:${token}`);
       if (!challengeStateStr) {
+        console.log({
+          event: "verification_error",
+          error: "challenge_not_found",
+          token
+        });
         return new Response("Challenge expired or invalid", { status: 400 });
       }
 
@@ -271,6 +330,14 @@ export default {
 
       // Verify answer
       if (answer === challengeState.answer) {
+        console.log({
+          event: "verification_success",
+          token,
+          sender: challengeState.originalEmail.from,
+          messageId: challengeState.originalEmail.headers.get("Message-ID"),
+          timeTaken: Date.now() - challengeState.originalEmail.timestamp
+        });
+
         // Add sender to whitelist
         await env.WHITELIST_STORE.put(challengeState.originalEmail.from, "true");
 
@@ -278,8 +345,8 @@ export default {
         const msg = createMimeMessage();
         msg.setSender({ name: "Original Sender", addr: challengeState.originalEmail.from });
         msg.setRecipient(TARGET_EMAIL);
-		const originalSubject = challengeState.originalEmail.headers.get("Subject") || "No Subject";
-		msg.setSubject(`[Sentinel verified] ${originalSubject}`);
+        const originalSubject = challengeState.originalEmail.headers.get("Subject") || "No Subject";
+        msg.setSubject(`[Sentinel verified] ${originalSubject}`);
         msg.addMessage({
           contentType: 'application/octet-stream',
           data: challengeState.originalEmail.rawEmail,
@@ -331,6 +398,14 @@ export default {
           }
         );
       }
+
+      console.log({
+        event: "verification_error",
+        error: "incorrect_answer",
+        token,
+        expectedAnswer: challengeState.answer,
+        providedAnswer: answer
+      });
 
       return new Response(
         `<!DOCTYPE html>
