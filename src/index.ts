@@ -67,14 +67,13 @@ async function sendChallengeEmail(
   token: string,
   env: Env
 ): Promise<void> {
-  const senderName = message.from.split('@')[0];
   const verificationLink = `https://${WORKER_ROUTE}/verify?token=${token}&answer=`;
 
   const msg = createMimeMessage();
   msg.setHeader("In-Reply-To", message.headers.get("Message-ID") || '');
   msg.setSender({ name: "Email Protection System", addr: message.to });
   msg.setRecipient(message.from);
-  msg.setSubject("Please Verify Your Email ✉️");
+  msg.setSubject("Please verify your email ✉️");
 
   const htmlContent = `
 <!DOCTYPE html>
@@ -87,7 +86,7 @@ async function sendChallengeEmail(
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background-color: #f8f9fa; border-radius: 5px; padding: 20px; margin-bottom: 20px;">
     <h1 style="color: #2c3e50; margin-top: 0;">Quick Verification Needed</h1>
-    <p>Hi${senderName ? ` ${senderName}` : ''},</p>
+    <p>Hi,</p>
     <p>I've received your email and want to make sure it reaches me safely. To prevent spam, I use a simple one-time verification system for new senders.</p>
 
     <div style="background-color: white; border-left: 4px solid #3498db; padding: 15px; margin: 20px 0;">
@@ -96,16 +95,17 @@ async function sendChallengeEmail(
     </div>
 
     <p>Click the correct answer below:</p>
-    <div style="display: flex; flex-direction: column; gap: 10px;">
-      ${Array.from({ length: 5 }, (_, i) => {
-        const answerOption = parseInt(challenge.answer) + i - 2;
-        return `<a href="${verificationLink}${answerOption}"
-          style="background-color: #3498db; color: white; padding: 10px 15px;
-          text-decoration: none; border-radius: 5px; text-align: center;">
-          ${answerOption}
-        </a>`;
-      }).join('\n')}
-    </div>
+	<div style="display: flex;">
+	${Array.from({ length: 5 }, (_, i) => {
+		const answerOption = parseInt(challenge.answer) + i - 2;
+		return `<a href="${verificationLink}${answerOption}"
+		style="background-color: #3498db; color: white; padding: 10px 15px;
+		text-decoration: none; border-radius: 5px; text-align: center;
+		margin-right: 10px;">
+		${answerOption}
+		</a>`;
+	}).join('\n')}
+	</div>
 
     <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
       <p style="color: #666; font-size: 14px;">
@@ -120,11 +120,11 @@ async function sendChallengeEmail(
 </html>`;
 
   const plainText = `
-Hi${senderName ? ` ${senderName}` : ''},
+Hi,
 
 I've received your email and want to make sure it reaches me safely. To prevent spam, I use a simple one-time verification system for new senders.
 
-Your Challenge Question:
+Your challenge question:
 ${challenge.question}
 
 To verify, click one of these links:
@@ -170,8 +170,6 @@ async function sendVerificationSuccessEmail(
   originalEmail: ChallengeState['originalEmail'],
   env: Env
 ): Promise<void> {
-  const senderName = originalEmail.from.split('@')[0];
-
   const msg = createMimeMessage();
   msg.setSender({ name: "Email Protection System", addr: TARGET_EMAIL });
   msg.setRecipient(originalEmail.from);
@@ -188,7 +186,7 @@ async function sendVerificationSuccessEmail(
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background-color: #f8f9fa; border-radius: 5px; padding: 20px;">
     <h1 style="color: #2c3e50; margin-top: 0;">✅ Verification Successful</h1>
-    <p>Hi${senderName ? ` ${senderName}` : ''},</p>
+    <p>Hi,</p>
 
     <div style="background-color: white; border-left: 4px solid #27ae60; padding: 15px; margin: 20px 0;">
       <p>Your email has been successfully verified and delivered!</p>
@@ -201,7 +199,7 @@ async function sendVerificationSuccessEmail(
 </html>`;
 
   const plainText = `
-Hi${senderName ? ` ${senderName}` : ''},
+Hi,
 
 ✅ Your email has been successfully verified and delivered!
 
