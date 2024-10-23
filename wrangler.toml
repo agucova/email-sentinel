@@ -5,7 +5,7 @@ compatibility_date = "2024-10-22"
 compatibility_flags = ["nodejs_compat"]
 
 send_email = [
-	{ name = "MAILER", destination_address = "sentinel@agucova.dev" },
+	{ name = "MAILER" },
 ]
 
 kv_namespaces = [

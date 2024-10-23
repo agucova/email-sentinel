@@ -70,14 +70,6 @@ async function sendChallengeEmail(
   const senderName = message.from.split('@')[0];
   const verificationLink = `https://${WORKER_ROUTE}/verify?token=${token}&answer=`;
 
-  console.log({
-    event: "challenge_email_sent",
-    sender: message.from,
-    token,
-    question: challenge.question,
-    messageId: message.headers.get("Message-ID")
-  });
-
   const msg = createMimeMessage();
   msg.setHeader("In-Reply-To", message.headers.get("Message-ID") || '');
   msg.setSender({ name: "Email Protection System", addr: message.to });
@@ -164,6 +156,14 @@ Thank you for your understanding.
   );
 
   await message.reply(replyMessage);
+
+  console.log({
+    event: "challenge_email_sent",
+    sender: message.from,
+    token,
+    question: challenge.question,
+    messageId: message.headers.get("Message-ID")
+  });
 }
 
 async function sendVerificationSuccessEmail(
@@ -171,12 +171,6 @@ async function sendVerificationSuccessEmail(
   env: Env
 ): Promise<void> {
   const senderName = originalEmail.from.split('@')[0];
-
-  console.log({
-    event: "success_email_sent",
-    sender: originalEmail.from,
-    messageId: originalEmail.headers.get("Message-ID")
-  });
 
   const msg = createMimeMessage();
   msg.setSender({ name: "Email Protection System", addr: TARGET_EMAIL });
@@ -233,17 +227,17 @@ Thank you for your patience with this security measure.
   );
 
   await env.MAILER.send(successMessage);
+
+
+  console.log({
+    event: "success_email_sent",
+    sender: originalEmail.from,
+    messageId: originalEmail.headers.get("Message-ID")
+  });
 }
 
 export default {
   async email(message: ForwardableEmailMessage, env: Env, ctx: ExecutionContext) {
-    console.log({
-      event: "email_received",
-      sender: message.from,
-      recipient: message.to,
-      subject: message.headers.get("Subject"),
-      messageId: message.headers.get("Message-ID")
-    });
 
     // Check if sender is whitelisted
     const isWhitelisted = await env.WHITELIST_STORE.get(message.from);
@@ -290,6 +284,14 @@ export default {
 
     // Send challenge email
     await sendChallengeEmail(message, challenge, token, env);
+
+	console.log({
+		event: "email_received",
+		sender: message.from,
+		recipient: message.to,
+		subject: message.headers.get("Subject"),
+		messageId: message.headers.get("Message-ID")
+	  });
   },
 
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
