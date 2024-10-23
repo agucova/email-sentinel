@@ -14,11 +14,13 @@ This is a completely unserious prototype implementing [this tweet](https://x.com
 4. If they don't answer or get it wrong, the email stays blocked
 
 ## How it looks
-<img src="img/verification_email.png" width="500">
+<img src="img/verification_email.png" width="700">
 
 ## Is it good?
 
-No, and it's littered with bugs. Also it's beyond me why Email Workers don't support SRS forwarding for some reason.
+No, and it's littered with bugs.
+
+Also it's beyond me why Email Workers don't support SRS forwarding for some reason.
 
 ## Setup
 
