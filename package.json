@@ -19,6 +19,9 @@
     "wrangler": "^3.60.3"
   },
   "dependencies": {
-    "mimetext": "^3.0.24"
+    "@protontech/jsmimeparser": "^3.0.1",
+    "es-toolkit": "^1.25.2",
+    "mimetext": "^3.0.24",
+    "ts-pattern": "^5.5.0"
   }
 }
