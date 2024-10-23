@@ -1,4 +1,4 @@
-# Email Sentinel System 🛡
+# Email Sentinel System 🛡️
 
 This is a completely unserious prototype implementing [this tweet](https://x.com/francoisfleuret/status/1848964006632980733):
 
